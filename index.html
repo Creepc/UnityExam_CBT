@@ -145,57 +145,6 @@
       margin-bottom: 20px;
     }
 
-    .share-panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 20px;
-    }
-
-    .share-panel h2 {
-      margin: 0 0 8px;
-      font-size: 19px;
-      letter-spacing: 0;
-    }
-
-    .share-panel p {
-      margin: 6px 0 12px;
-      color: #344054;
-    }
-
-    .share-row {
-      display: grid;
-      grid-template-columns: 1fr auto auto;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .share-row input {
-      height: 42px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 0 12px;
-      font: inherit;
-      min-width: 0;
-    }
-
-    .share-status {
-      margin-top: 10px;
-      border-radius: 8px;
-      padding: 10px 12px;
-      background: #fff8f3;
-      border: 1px solid #f0c5a8;
-      color: #6f2b06;
-      font-weight: 700;
-    }
-
-    .share-status.ok {
-      background: #f0fbf5;
-      border-color: #a7d8bd;
-      color: var(--good);
-    }
-
     .concepts {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -427,17 +376,6 @@
       <button id="showAll" type="button">전체 해설 보기</button>
       <button id="shuffle" type="button">문제 섞기</button>
       <button class="secondary" id="reset" type="button">초기화</button>
-    </section>
-
-    <section class="share-panel" aria-label="공유">
-      <h2>카톡 공유</h2>
-      <p>친구가 바로 열려면 이 사이트가 인터넷에 올라간 공개 주소여야 합니다. GitHub Pages, Netlify, Vercel 같은 곳에 올린 뒤 아래 칸에 공개 URL을 넣고 공유하세요.</p>
-      <div class="share-row">
-        <input id="shareUrl" type="url" aria-label="공유할 공개 URL" placeholder="공개 URL을 넣으세요. 예: https://내주소.github.io/unity-exam-quiz/">
-        <button class="primary" id="nativeShare" type="button">카톡으로 공유</button>
-        <button id="copyShare" type="button">링크 복사</button>
-      </div>
-      <div id="shareStatus" class="share-status"></div>
     </section>
 
     <details class="concepts" open>
@@ -1172,8 +1110,6 @@
     const typeFilter = document.getElementById("typeFilter");
     const topicFilter = document.getElementById("topicFilter");
     const mode = document.getElementById("mode");
-    const shareUrl = document.getElementById("shareUrl");
-    const shareStatus = document.getElementById("shareStatus");
     const visibleCount = document.getElementById("visibleCount");
     const answeredCount = document.getElementById("answeredCount");
     const correctCount = document.getElementById("correctCount");
@@ -1193,28 +1129,6 @@
 
     function normalize(value) {
       return String(value || "").toLowerCase().replace(/\s+/g, " ").trim();
-    }
-
-    function isLocalUrl(url) {
-      return /^(http:\/\/)?(127\.0\.0\.1|localhost|\[::1\])/i.test(url) || url.startsWith("file:");
-    }
-
-    function getShareTarget() {
-      return shareUrl.value.trim() || window.location.href;
-    }
-
-    function setShareStatus(message, ok = false) {
-      shareStatus.textContent = message;
-      shareStatus.classList.toggle("ok", ok);
-    }
-
-    function updateShareStatus() {
-      const target = getShareTarget();
-      if (isLocalUrl(target)) {
-        setShareStatus("현재 주소는 내 컴퓨터 전용 주소라 카톡으로 보내도 친구가 열 수 없습니다. 공개 URL로 배포한 뒤 그 주소를 넣어 공유하세요.");
-      } else {
-        setShareStatus("공개 URL입니다. 카톡 공유나 링크 복사를 사용할 수 있습니다.", true);
-      }
     }
 
     function getFiltered() {
@@ -1440,54 +1354,11 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
-    document.getElementById("nativeShare").addEventListener("click", async () => {
-      const target = getShareTarget();
-      if (isLocalUrl(target)) {
-        updateShareStatus();
-        return;
-      }
-
-      const shareData = {
-        title: "Unity 시험 대비 문제은행",
-        text: "Unity 시험 대비 객관식, O/X, 단답형 문제은행이야.",
-        url: target
-      };
-
-      try {
-        if (navigator.share) {
-          await navigator.share(shareData);
-          setShareStatus("공유 창을 열었습니다. 모바일에서는 카카오톡을 선택하면 됩니다.", true);
-        } else {
-          await navigator.clipboard.writeText(target);
-          setShareStatus("이 브라우저는 공유 창을 지원하지 않아 링크를 복사했습니다.", true);
-        }
-      } catch (error) {
-        setShareStatus("공유가 취소되었거나 브라우저에서 막혔습니다. 링크 복사를 사용하세요.");
-      }
-    });
-
-    document.getElementById("copyShare").addEventListener("click", async () => {
-      const target = getShareTarget();
-      try {
-        await navigator.clipboard.writeText(target);
-        if (isLocalUrl(target)) {
-          setShareStatus("링크는 복사했지만 현재 로컬 주소라 친구는 열 수 없습니다. 공개 URL로 배포한 뒤 공유하세요.");
-        } else {
-          setShareStatus("공유 링크를 복사했습니다.", true);
-        }
-      } catch (error) {
-        setShareStatus("클립보드 복사에 실패했습니다. 주소를 직접 선택해서 복사하세요.");
-      }
-    });
-
     [search, typeFilter, topicFilter, mode].forEach(control => {
       control.addEventListener("input", render);
       control.addEventListener("change", render);
     });
 
-    shareUrl.addEventListener("input", updateShareStatus);
-    shareUrl.value = window.location.href;
-    updateShareStatus();
     render();
   </script>
 </body>
